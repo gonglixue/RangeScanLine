@@ -1,9 +1,8 @@
-#ifndef __EDGE_H__
-#define __EDGE_H__
+#pragma once
 #include <glm\glm.hpp>
-
+#include "Polygon.h"
 // 投影多边形边界
-struct Edge	
+struct Edge
 {
 	int x_;					// 边的上端点x 的屏幕空间坐标（左上角为原点）
 	int y_up;					// 上端点的y
@@ -49,5 +48,9 @@ struct Edge
 
 	}
 };
-#endif // ! __EDGE_H__
+
+
+
+
+
 

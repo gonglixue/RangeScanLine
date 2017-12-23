@@ -1,7 +1,7 @@
-#pragma once
-#include "Edge.h"
+#ifndef __POLYGON_H__
+#define __POLYGON_H__
 #include <glm/glm.hpp>
-
+#include "Edge.h"
 struct Polygon
 {
 	float a_, b_, c_, d_;		// 三维空间平面的方程系数
@@ -95,3 +95,5 @@ struct Polygon
 		}
 	}
 };
+
+#endif // !polygon.h

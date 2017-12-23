@@ -5,7 +5,7 @@
 #include <glut.h>
 // 扫描线由上到下扫，及y由小到大；
 
-#include "total.h"
+#include "ActiveEdge.h"
 #include "RangeInter.h"
 
 const int WIN_WIDTH = 400;
@@ -24,7 +24,7 @@ void InsertPolygonToPT(Polygon* polygon)
 	//mymap.insert(std::pair<char, int>('a', 100));
 	std::map<int, Polygon*>::iterator it;
 	it = PT.find(polygon->y_min_);
-	
+
 	if (it != PT.end())
 	{
 		// PT中y_min_对应的链表不为空，把polygon插入到链表末尾
@@ -35,7 +35,7 @@ void InsertPolygonToPT(Polygon* polygon)
 
 	}
 	else {
-		PT.insert(std::pair <int,Polygon*>( polygon->y_min_, polygon));
+		PT.insert(std::pair <int, Polygon*>(polygon->y_min_, polygon));
 	}
 }
 
@@ -156,9 +156,9 @@ ActivePolygon* PolygonIsActive(int poly_id, int last_scan_y)
 {
 	if (last_scan_y < 0)
 		return NULL;
-	if (APT.empty()) 
+	if (APT.empty())
 		return NULL;
-	
+
 	std::map<int, ActivePolygon*>::iterator pt_it;
 	pt_it = APT.find(last_scan_y);
 
@@ -192,7 +192,7 @@ bool CheckEndInAET(int last_scan_y)
 		while (temp)
 		{
 			if (temp->dyl_ <= 0 || temp->dyr_ <= 0) {  // 有边要结束
-				// 判断该边所在的多边形是否在活化多边形表内
+													   // 判断该边所在的多边形是否在活化多边形表内
 				ActivePolygon* active_polygon = PolygonIsActive(temp->poly_id_, last_scan_y);
 				// 如果所在多边形仍在活化多边形表内，找新的相交对
 				if (active_polygon)
@@ -205,7 +205,7 @@ bool CheckEndInAET(int last_scan_y)
 					temp->CopyFrom(temp_next);
 					temp->next_ = temp_next->next_;
 					free(temp_next);
-					
+
 					if (!flag1 && !flag2 && !flag3) {
 						// TODO 有边结束，且三条边都结束
 						// 删除APT里last_scan_y的polygon，
@@ -235,7 +235,7 @@ bool CheckEndInAET(int last_scan_y)
 				}
 				//return true; 结束的边可能有多条
 			}
-			
+
 			// 边不结束
 			else {
 				// 更新活化边信息与活化多边形信息，加入到当前扫描线的活化边表里
@@ -276,9 +276,9 @@ void InitSceneData()
 	glm::vec3 t2_p2 = glm::vec3(300, 200, 5);
 	glm::vec3 t2_p3 = glm::vec3(300, 300, 5);
 
-	Polygon* p1 = new Polygon(t1_p1, t1_p2, t1_p3);
-	Polygon* p2 = new Polygon(t2_p1, t2_p2, t2_p3);
-	
+	Polygon* p1 = new Polygon(t1_p1, t1_p2, t1_p3, glm::vec3(255, 0, 0));
+	Polygon* p2 = new Polygon(t2_p1, t2_p2, t2_p3, glm::vec3(0,0,255));
+
 
 
 	// 构造分类多边形表
@@ -357,7 +357,7 @@ bool PolygonIsInRange(ActivePolygon* polygon, int centerx, int cur_y)
 		exit(1);
 	}
 
-	if (centerx > ae->xl_ && centerx < ae->xr_)
+	if (centerx >= ae->xl_ && centerx <= ae->xr_)
 	{
 		return true;
 	}
@@ -402,14 +402,15 @@ std::vector<RangeInter*> GetRangeFromAET(int cur_y)
 	// 区间排序
 	std::sort(range_list.begin(), range_list.end(), compare_range_inter);
 	return range_list;
-	
+
 }
 
 void ScaneLine(int cur_y)
 {
-	
 
-	// 检查PT，是否有多边形涉及当前扫描线
+
+	// 遍历PT，是否有多边形涉及当前扫描线
+	// std::map<int, Polygon*>::iterator pt_it = PT.find(cur_y);
 	std::map<int, Polygon*>::iterator pt_it = PT.begin();
 	while (pt_it != PT.end())
 	{
@@ -417,7 +418,7 @@ void ScaneLine(int cur_y)
 		while (cur_polygon)
 		{
 			// 如果该多边形已经在活化多边形表里了
-			if (PolygonIsActive(cur_polygon->id_, cur_y-1))
+			if (PolygonIsActive(cur_polygon->id_, cur_y - 1))
 			{
 				// 如果有些边在这条扫描线结束了（上条扫描线活化边表里的边dy=0）
 				bool ifEnd = CheckEndInAET(cur_y - 1);		// 根据相交是否结束构建当前扫描线的活化边、活化多边形
@@ -440,6 +441,7 @@ void ScaneLine(int cur_y)
 
 				// 把该多边形与当前扫描线相交的边对，加入到活化边表里
 				bool flag1, flag2, flag3;  // 是否与三条边相交
+				flag1 = flag2 = flag3 = false;
 				cur_polygon->IntersectWithScanLine(cur_y, flag1, flag2, flag3);
 				if (!flag1) {
 					// e2 e3
@@ -462,78 +464,79 @@ void ScaneLine(int cur_y)
 				}
 
 			}
-		}
 		
-		// 获得区间
-		std::vector<RangeInter*> range_list = GetRangeFromAET(cur_y);
-		// 判断在每个区间内,当前活化的多边形in/out情况
-		// 遍历每个区间
-		if (range_list.size() > 2)
-		{
-			for (int i = 0; i < range_list.size()-1; i++)
-			{
-				RangeInter* left = range_list[i];
-				RangeInter* right = range_list[i + 1];
-				// 判断每个多边形，比较在此区间的z
-				std::map<int, ActivePolygon*>::iterator it;
-				it = APT.find(cur_y);
-				if (it != APT.end())
-				{
-					ActivePolygon* temp_in_polygon_list;
-					ActivePolygon* polygon = it->second;
-					Polygon* max_z_polygon;
-					float max_z;
-					while (polygon)
-					{
-						int centerx = (left->x_ + right->x_) / 2;
-						if (PolygonIsInRange(polygon, centerx, cur_y))
-						{
-							if (max_z_polygon)
-							{
-								// 比较中点深度值
-								ActiveEdge* ae = GetActiveEdge(polygon->polygon_->id_, cur_y);
-								float cur_z = ae->zl_ + ae->dzx_*(centerx - ae->zl_);
-								if (cur_z > max_z) {
-									max_z = cur_z;
-									max_z_polygon = polygon->polygon_;
-								}
-
-							}
-							else if (!max_z_polygon) {
-								ActiveEdge* ae = GetActiveEdge(polygon->polygon_->id_, cur_y);
-								float cur_z = ae->zl_ + ae->dzx_*(centerx - ae->zl_);
-								max_z = cur_z;
-								max_z_polygon = polygon->polygon_;
-							}
-						}
-						polygon = polygon->next_;
-					}
-
-					if (!max_z_polygon) {
-						// draw [left,right] with max_z_polygon's color
-					}
-					else {
-						// 没有多边形在此区间
-						// draw [left, right] with background color
-					}
-
-				}
-				else {
-					printf("There are many ranges but can not find active polygon in this line.\n");
-					exit(1);
-				}
-			}
+			cur_polygon = cur_polygon->next_;
 		}
-		else {
-			// draw background for the while line
-		}
-
-
-
 
 		pt_it++;
 	}
-	
+
+	// 获得区间
+	std::vector<RangeInter*> range_list = GetRangeFromAET(cur_y);
+	// 判断在每个区间内,当前活化的多边形in/out情况
+	// 遍历每个区间
+	if (range_list.size() > 2)
+	{
+		for (int i = 0; i < range_list.size() - 1; i++)
+		{
+			RangeInter* left = range_list[i];
+			RangeInter* right = range_list[i + 1];
+			// 判断每个多边形，比较在此区间的z
+			std::map<int, ActivePolygon*>::iterator it;
+			it = APT.find(cur_y);
+			if (it != APT.end())
+			{
+				ActivePolygon* temp_in_polygon_list;
+				ActivePolygon* polygon = it->second;
+				Polygon* max_z_polygon = NULL;
+				float max_z;
+				while (polygon)
+				{
+					int centerx = (left->x_ + right->x_) / 2;
+					if (PolygonIsInRange(polygon, centerx, cur_y))
+					{
+						if (max_z_polygon)
+						{
+							// 比较中点深度值
+							ActiveEdge* ae = GetActiveEdge(polygon->polygon_->id_, cur_y);
+							float cur_z = ae->zl_ + ae->dzx_*(centerx - ae->zl_);
+							if (cur_z > max_z) {
+								max_z = cur_z;
+								max_z_polygon = polygon->polygon_;
+							}
+
+						}
+						else if (!max_z_polygon) {
+							ActiveEdge* ae = GetActiveEdge(polygon->polygon_->id_, cur_y);
+							float cur_z = ae->zl_ + ae->dzx_*(centerx - ae->zl_);
+							max_z = cur_z;
+							max_z_polygon = polygon->polygon_;
+						}
+					}
+					polygon = polygon->next_;
+				}
+
+				if (max_z_polygon) {
+					// draw [left,right] with max_z_polygon's color
+					printf("draw [%d, %d] with %polygon's color\n", left->x_, right->x_, max_z_polygon->id_);
+				}
+				else {
+					// 没有多边形在此区间
+					// draw [left, right] with background color
+					printf("draw [%d, %d] with bg's color\n", left->x_, right->x_);
+				}
+
+			}
+			else {
+				printf("There are many ranges but can not find active polygon in this line.\n");
+				exit(1);
+			}
+		}
+	}
+	else {
+		// draw background for the whole line
+		printf("[y=%d] draw the whole line with bg color", cur_y);
+	}
 
 }
 
@@ -548,6 +551,10 @@ void myDisplay() {
 
 int main(int argc, char* argv[]) {
 	InitSceneData();
+	for (int i = 0; i < WIN_HEIGHT; i++)
+	{
+		ScaneLine(i);
+	}
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);

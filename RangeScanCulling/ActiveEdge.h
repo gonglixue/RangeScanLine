@@ -19,6 +19,8 @@ struct ActiveEdge
 
 	int poly_id_;		// 交点对所在的多边形的编号
 
+	// should add ActivePolygon* active_polygon
+
 	Edge* edge_l_;
 	Edge* edge_r_;
 	ActiveEdge* next_;
@@ -67,13 +69,24 @@ struct ActiveEdge
 		dzy_ = -1.0 * e1->in_poly_->b_ / e1->in_poly_->c_;
 
 		poly_id_ = e1->in_poly_->id_;
-		next_ = NULL;
-
-		
-
-		
+		next_ = NULL;	
 
 	}
+
+	ActiveEdge(ActiveEdge* update_from_ae)
+	{
+		dxl_ = update_from_ae->dxl_;
+		xl_ = update_from_ae->xl_ + dxl_;
+		dyl_--;
+
+		dxr_ = update_from_ae->dxr_;
+		xr_ = update_from_ae->xr_ + dxr_;
+		dyr_--;
+
+		zl_ = zl_ + dzx_ * dxl_ + dzy_;
+		next_ = NULL;
+	}
+
 
 	void CopyFrom(ActiveEdge* next)
 	{
@@ -94,6 +107,9 @@ struct ActiveEdge
 		edge_r_ = next->edge_r_;
 
 	}
+
+	
+	
 };
 
 #endif // ! __ACTIVE_EDGE_H__
