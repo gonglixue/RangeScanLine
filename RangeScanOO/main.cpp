@@ -518,12 +518,12 @@ void ScaneLine(int cur_y)
 
 				if (max_z_polygon) {
 					// draw [left,right] with max_z_polygon's color
-					printf("draw [%d, %d] with %polygon's color\n", left->x_, right->x_, max_z_polygon->id_);
+					printf("[y=%d] draw [%d, %d] with %d_polygon's color\n", cur_y, left->x_, right->x_, max_z_polygon->id_);
 				}
 				else {
 					// 没有多边形在此区间
 					// draw [left, right] with background color
-					printf("draw [%d, %d] with bg's color\n", left->x_, right->x_);
+					printf("[y=%d] draw [%d, %d] with bg's color\n", cur_y, left->x_, right->x_);
 				}
 
 			}
@@ -535,7 +535,7 @@ void ScaneLine(int cur_y)
 	}
 	else {
 		// draw background for the whole line
-		printf("[y=%d] draw the whole line with bg color", cur_y);
+		printf("[y=%d] draw the whole line with bg color\n", cur_y);
 	}
 
 }

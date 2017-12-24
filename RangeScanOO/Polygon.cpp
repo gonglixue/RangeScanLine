@@ -70,7 +70,7 @@ void Polygon::IntersectWithScanLine(int scan_y, bool& flag1, bool& flag2, bool& 
 	int r = int(flag1) + int(flag2) + int(flag3);
 	if (r != 2 && r != 0)
 	{
-		printf("Scan Line can only intersect with a polygon at two or zero edge.\n");
+		printf("Polygon::Polygon Scan Line can only intersect with a polygon at two or zero edge.\n");
 		exit(3);
 	}
 }
