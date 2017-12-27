@@ -1,11 +1,11 @@
 #pragma once
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include "ActivePolygon.h"
 
-// Çø¼ä¶Ëµã
+// ï¿½ï¿½ï¿½ï¿½Ëµï¿½
 struct RangeInter {
-	ActivePolygon* belong_to_poly_;		// ËùÊô¶à±ßÐÎ
-	int x_;		// x×ø±ê
+	ActivePolygon* belong_to_poly_;		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	int x_;		// xï¿½ï¿½ï¿½ï¿½
 
 	RangeInter(ActivePolygon* polygon, int x)
 	{

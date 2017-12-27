@@ -1,18 +1,18 @@
 #pragma once
 #include "Polygon.h"
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 class Polygon;
 class Edge
 {
 public:
-	int x_;					// 边的上端点x 的屏幕空间坐标（左上角为原点）
-	int y_up;					// 上端点的y
-	int y_down;					// 下端点的y
-	float z_up_;				// 上端点的z
-	int poly_id_;				// 所属多边形id
+	int x_;					// 锟竭碉拷锟较端碉拷x 锟斤拷锟斤拷幕锟秸硷拷锟斤拷锟疥（锟斤拷锟较斤拷为原锟姐）
+	int y_up;					// 锟较端碉拷锟統
+	int y_down;					// 锟铰端碉拷锟統
+	float z_up_;				// 锟较端碉拷锟絲
+	int poly_id_;				// 锟斤拷锟斤拷锟斤拷锟斤拷锟絠d
 	int edge_id_;
-	float dx_;				// (1/k) 扫描线每向下扫一个单位，x的变化量
-	int dy_;				// 跨越扫描线数
+	float dx_;				// (1/k) 扫锟斤拷锟斤拷每锟斤拷锟斤拷扫一锟斤拷锟斤拷位锟斤拷x锟侥变化锟斤拷
+	int dy_;				// 锟斤拷越扫锟斤拷锟斤拷锟斤拷
 
 	Edge* next_;
 	Polygon* in_poly_;

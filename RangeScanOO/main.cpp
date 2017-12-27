@@ -2,7 +2,12 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-#include <glut.h>
+
+#ifdef _WIN32
+    #include <glut.h>
+#elif __linux
+    #include <GL/glut.h>
+#endif
 // 扫描线由上到下扫，及y由小到大；
 
 #include "ActiveEdge.h"

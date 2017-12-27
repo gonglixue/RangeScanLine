@@ -4,3 +4,9 @@ x64/
 Test/
 *.db
 *.opendb
+*.txt
+*.cmake
+Makefile
+cmake-build-debug/
+CMakeFiles/
+.idea/
