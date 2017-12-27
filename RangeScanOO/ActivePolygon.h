@@ -22,7 +22,8 @@ public:
 	ActivePolygon(ActivePolygon* update_from)
 	{
 		polygon_ = update_from->polygon_;
-		dy_--;
+		//dy_--;
+		dy_ = update_from->dy_ - 1;
 
 		next_ = NULL;
 	}
