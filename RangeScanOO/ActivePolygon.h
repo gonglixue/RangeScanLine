@@ -10,6 +10,13 @@ public:
 
 	int dy_;		// 多边形跨越的剩余扫描线数目
 	ActivePolygon* next_;
+
+	ActivePolygon()
+	{
+		polygon_ = NULL;
+		next_ = NULL;
+		dy_ = -1;
+	}
 	
 	ActivePolygon(Polygon* polygon)
 	{
@@ -27,4 +34,9 @@ public:
 
 		next_ = NULL;
 	}
+
+	void Update() {
+		dy_--;
+	}
+
 };

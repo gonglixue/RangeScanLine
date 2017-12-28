@@ -216,6 +216,35 @@ ActivePolygon* PolygonIsActive(int poly_id, int last_scan_y)
 	return NULL;
 }
 
+ActivePolygon* PolygonIsNotEnd(int poly_id, int scan_y)
+{
+	if (scan_y < 0)
+		return NULL;
+	if (APT.empty())
+		return NULL;
+
+	std::map<int, ActivePolygon*>::iterator apt_it;
+	apt_it = APT.find(scan_y);
+
+	if (apt_it != APT.end())
+	{
+		ActivePolygon* temp = apt_it->second;
+		while (temp)
+		{
+			if (temp->polygon_->id_ == poly_id)
+			{
+				if (temp->dy_ > 0) //? >=0
+					return temp;
+				else
+					return NULL;
+			}
+			temp = temp->next_;
+		}
+	}
+
+	return NULL;
+}
+
 // 检查上一个活化边表里，是否有边结束.有边结束了就返回true
 bool CheckEndInAET(int last_scan_y)
 {
@@ -233,18 +262,20 @@ bool CheckEndInAET(int last_scan_y)
 		{
 			if (temp->dyl_ <= 0 || temp->dyr_ <= 0) {  // 有边要结束
 													   // 判断该边所在的多边形是否在活化多边形表内
-				ActivePolygon* active_polygon = PolygonIsActive(temp->poly_id_, last_scan_y);
-				// 如果所在多边形仍在活化多边形表内，找新的相交对
+				//ActivePolygon* active_polygon = PolygonIsActive(temp->poly_id_, last_scan_y);
+				ActivePolygon* active_polygon = PolygonIsNotEnd(temp->poly_id_, last_scan_y);
+				// 如果所在多边形仍在活化，找新的相交对
 				if (active_polygon)
 				{
 					bool flag1, flag2, flag3;
+					flag1 = flag2 = flag3 = false;
 					active_polygon->polygon_->IntersectWithScanLine(last_scan_y, flag1, flag2, flag3);
 					// TODO 构建新的相交对,加到活化边表中。删除原来结束的边temp
 					// 把temp的下一条边的data复制给temp，删除temp的下一条边:) 但temp边下个循环仍需处理
-					ActiveEdge* temp_next = temp->next_;
-					temp->CopyFrom(temp_next);
-					temp->next_ = temp_next->next_;
-					free(temp_next);
+					//ActiveEdge* temp_next = temp->next_;
+					//temp->CopyFrom(temp_next);
+					//temp->next_ = temp_next->next_;
+					//free(temp_next);
 
 					if (!flag1 && !flag2 && !flag3) {
 						// TODO 有边结束，且三条边都结束
@@ -253,25 +284,29 @@ bool CheckEndInAET(int last_scan_y)
 						// 。。。
 					}
 					else if (!flag1) {
-						ActiveEdge* active_edge = new ActiveEdge(active_polygon->polygon_->e2_, active_polygon->polygon_->e3_);
+						ActiveEdge* active_edge = new ActiveEdge(active_polygon->polygon_->e2_, active_polygon->polygon_->e3_, last_scan_y+1);
 						InsertActiveEdgeToAET(active_edge, last_scan_y + 1);
-						InsertActivePolygonToAPT(active_polygon, last_scan_y + 1);
+						//active_polygon->Update();
+						ActivePolygon* change_edge_ap = new ActivePolygon(active_polygon);
+						InsertActivePolygonToAPT(change_edge_ap, last_scan_y + 1);
 					}
 					else if (!flag2) {
-						ActiveEdge* active_edge = new ActiveEdge(active_polygon->polygon_->e1_, active_polygon->polygon_->e3_);
+						ActiveEdge* active_edge = new ActiveEdge(active_polygon->polygon_->e1_, active_polygon->polygon_->e3_, last_scan_y+1);
 						InsertActiveEdgeToAET(active_edge, last_scan_y + 1);
-						InsertActivePolygonToAPT(active_polygon, last_scan_y + 1);
+						ActivePolygon* change_edge_ap = new ActivePolygon(active_polygon);
+						InsertActivePolygonToAPT(change_edge_ap, last_scan_y + 1);
 					}
 					else if (!flag3) {
-						ActiveEdge* active_edge = new ActiveEdge(active_polygon->polygon_->e1_, active_polygon->polygon_->e2_);
+						ActiveEdge* active_edge = new ActiveEdge(active_polygon->polygon_->e1_, active_polygon->polygon_->e2_, last_scan_y+1);
 						InsertActiveEdgeToAET(active_edge, last_scan_y + 1);
-						InsertActivePolygonToAPT(active_polygon, last_scan_y + 1);
+						ActivePolygon* change_edge_ap = new ActivePolygon(active_polygon);
+						InsertActivePolygonToAPT(change_edge_ap, last_scan_y + 1);
 					}
 					else {
 						printf("CheckEndInAET::scan line can only intersect with a polygon at two edges.\n");
 						exit(3);
 					}
-					continue;
+					
 				}
 				//return true; 结束的边可能有多条
 			}
@@ -397,7 +432,8 @@ bool PolygonIsInRange(ActivePolygon* polygon, int centerx, int cur_y)
 		exit(1);
 	}
 
-	if (centerx >= ae->xl_ && centerx <= ae->xr_)
+	//if (centerx >= ae->xl_ && centerx <= ae->xr_)
+	if((centerx - ae->xl_)*(centerx-ae->xr_) <= 0) // =?
 	{
 		return true;
 	}
@@ -447,6 +483,9 @@ std::vector<RangeInter*> GetRangeFromAET(int cur_y)
 
 void ScaneLine(int cur_y)
 {
+	// 如果有些边在这条扫描线结束了（上条扫描线活化边表里的边dy=0）
+	bool ifEnd = CheckEndInAET(cur_y - 1);		// 根据相交是否结束构建当前扫描线的活化边、活化多边形
+	printf("At scan line %d, ifEnd:%d.\n", cur_y, ifEnd);
 
 
 	// 遍历PT，是否有多边形涉及当前扫描线
@@ -458,11 +497,9 @@ void ScaneLine(int cur_y)
 		while (cur_polygon)
 		{
 			// 如果该多边形已经在活化多边形表里了
-			if (PolygonIsActive(cur_polygon->id_, cur_y - 1))
+			//if (PolygonIsActive(cur_polygon->id_, cur_y - 1))
+			if(PolygonIsNotEnd(cur_polygon->id_, cur_y - 1))
 			{
-				// 如果有些边在这条扫描线结束了（上条扫描线活化边表里的边dy=0）
-				bool ifEnd = CheckEndInAET(cur_y - 1);		// 根据相交是否结束构建当前扫描线的活化边、活化多边形
-				printf("At scan line %d, ifEnd:%d.\n", cur_y, ifEnd);
 
 				// TODO
 				// 傻逼了，我为什么要把活化边对写在一起:)
@@ -558,12 +595,12 @@ void ScaneLine(int cur_y)
 
 				if (max_z_polygon) {
 					// draw [left,right] with max_z_polygon's color
-					printf("[y=%d] draw [%d, %d] with %d_polygon's color\n", cur_y, left->x_, right->x_, max_z_polygon->id_);
+					printf("[y=%d] draw [%d, %d] with %d_polygon's color\n", cur_y, int(left->x_+0.5), int(right->x_+0.5), max_z_polygon->id_);
 				}
 				else {
 					// 没有多边形在此区间
 					// draw [left, right] with background color
-					printf("[y=%d] draw [%d, %d] with bg's color\n", cur_y, left->x_, right->x_);
+					printf("[y=%d] draw [%d, %d] with bg's color\n", cur_y, int(left->x_+0.5), int(right->x_+0.5));
 				}
 
 			}

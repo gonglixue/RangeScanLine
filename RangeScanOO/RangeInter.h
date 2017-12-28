@@ -5,9 +5,9 @@
 // 区间端点
 struct RangeInter {
 	ActivePolygon* belong_to_poly_;		// 所属多边形
-	int x_;		// x坐标
+	float x_;		// x坐标
 
-	RangeInter(ActivePolygon* polygon, int x)
+	RangeInter(ActivePolygon* polygon, float x)
 	{
 		x_ = x;
 		belong_to_poly_ = polygon;

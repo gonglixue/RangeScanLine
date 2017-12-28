@@ -8,7 +8,8 @@ Edge::Edge(glm::vec3 p1, glm::vec3 p2, Polygon* in_poly)
 	poly_id_ = in_poly->id_;
 	in_poly_ = in_poly;
 
-	dy_ = abs(p2.y - p1.y) + 1;
+	//dy_ = abs(p2.y - p1.y) + 1;
+	dy_ = abs(p2.y - p1.y);
 	if (p1.y < p2.y) {	// 找上端点（y更小的）
 		x_ = p1.x;
 		y_up = p1.y;

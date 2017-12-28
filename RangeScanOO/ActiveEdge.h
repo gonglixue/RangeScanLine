@@ -27,6 +27,7 @@ public:
 	ActiveEdge* next_;
 
 	ActiveEdge(Edge* e1, Edge* e2);
+	ActiveEdge(Edge* e1, Edge* e2, int scan_y);
 	ActiveEdge(ActiveEdge* update_from_ae);
 	void CopyFrom(ActiveEdge* next);
 };

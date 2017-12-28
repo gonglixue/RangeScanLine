@@ -43,7 +43,8 @@ Polygon::Polygon(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color)
 	d_ = (glm::dot(normal, p1)) * (-1);
 
 	color_ = color;
-	dy_ = p3_screen_.y - p1_screen_.y + 1;  // ???
+	//dy_ = p3_screen_.y - p1_screen_.y + 1;  // ???
+	dy_ = p3_screen_.y - p1_screen_.y;
 	y_min_ = p1_screen_.y;
 	next_ = NULL;
 	flag = false;
@@ -59,12 +60,12 @@ void Polygon::AddEdge(Edge* e1, Edge* e2, Edge* e3)
 void Polygon::IntersectWithScanLine(int scan_y, bool& flag1, bool& flag2, bool& flag3)
 {
 	// 是否与e1相交
-	if (scan_y >= e1_->y_up && scan_y <= e1_->y_down)
+	if (scan_y >= e1_->y_up && scan_y < e1_->y_down)
 		flag1 = true;
 	// 是否与e2相交
-	if (scan_y >= e2_->y_up && scan_y <= e2_->y_down)
+	if (scan_y >= e2_->y_up && scan_y < e2_->y_down)
 		flag2 = true;
-	if (scan_y >= e3_->y_up && scan_y <= e3_->y_down)
+	if (scan_y >= e3_->y_up && scan_y < e3_->y_down)
 		flag3 = true;
 
 	int r = int(flag1) + int(flag2) + int(flag3);
