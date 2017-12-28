@@ -6,11 +6,11 @@ class Edge;
 class ActiveEdge
 {
 public:
-	int xl_;			//左交点的x坐标
+	float xl_;			//左交点的x坐标
 	float dxl_;
 	int dyl_;			// 以该边跨越的扫描线为初值，以后每向下处理一条扫描线减1
 
-	int xr_;
+	float xr_;
 	float dxr_;
 	int dyr_;
 

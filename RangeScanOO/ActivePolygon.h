@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "Polygon.h"
 
 class Polygon;
@@ -8,7 +8,7 @@ class ActivePolygon
 public:
 	Polygon* polygon_;
 
-	int dy_;		// ¶à±ßĞÎ¿çÔ½µÄÊ£ÓàÉ¨ÃèÏßÊıÄ¿
+	int dy_;		// å¤šè¾¹å½¢è·¨è¶Šçš„å‰©ä½™æ‰«æçº¿æ•°ç›®
 	ActivePolygon* next_;
 	
 	ActivePolygon(Polygon* polygon)

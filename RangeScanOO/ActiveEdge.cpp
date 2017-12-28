@@ -1,15 +1,15 @@
-#include "ActiveEdge.h"
+ï»¿#include "ActiveEdge.h"
 
 ActiveEdge::ActiveEdge(Edge* e1, Edge* e2)
 {
-	// ³õÊ¼Ê±ÓëÁ½Ìõ±ß½»ÓÚÒ»µã£¬e1Óëe2Ó¦ÓÐ¹²Í¬µÄÉÏ¶Ëµã NOOOO!
+	// åˆå§‹æ—¶ä¸Žä¸¤æ¡è¾¹äº¤äºŽä¸€ç‚¹ï¼Œe1ä¸Že2åº”æœ‰å…±åŒçš„ä¸Šç«¯ç‚¹ NOOOO!
 	//if (abs(e1->x_ - e2->x_) < 0.0001)
 	//{
 	//	printf("ActiveEdge::ActiveEdge: two edges should have the same up end point.\n");
 	//	exit(1);
 	//}
 
-	// É¨ÃèÏßÃ¿ÏòÏÂ´¦ÀíÒ»¸öµ¥Î»£¬e1xµÄÔöÁ¿Ð¡ÓÚd2x£¬e1Îª×ó
+	// æ‰«æçº¿æ¯å‘ä¸‹å¤„ç†ä¸€ä¸ªå•ä½ï¼Œe1xçš„å¢žé‡å°äºŽd2xï¼Œe1ä¸ºå·¦
 	if (e1->dx_ < e2->dx_)
 	{
 		xl_ = e1->x_;
@@ -51,11 +51,11 @@ ActiveEdge::ActiveEdge(Edge* e1, Edge* e2)
 ActiveEdge::ActiveEdge(ActiveEdge* update_from_ae)
 {
 	dxl_ = update_from_ae->dxl_;
-	xl_ = update_from_ae->xl_ + dxl_ + 0.5f;  //ËÄÉáÎåÈë
+	xl_ = update_from_ae->xl_ + dxl_;  //å››èˆäº”å…¥
 	dyl_ = update_from_ae->dyl_ - 1;
 
 	dxr_ = update_from_ae->dxr_;
-	xr_ = update_from_ae->xr_ + dxr_ + 0.5f;
+	xr_ = update_from_ae->xr_ + dxr_;
 	dyr_ = update_from_ae->dyr_ - 1;
 
 	zl_ = zl_ + dzx_ * dxl_ + dzy_;
