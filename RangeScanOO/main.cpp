@@ -2,7 +2,12 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-#include <glut.h>
+
+#ifdef _WIN32
+    #include <glut.h>
+#elif __linux
+    #include <GL/glut.h>
+#endif
 // 扫描线由上到下扫，及y由小到大；
 
 #include "ActiveEdge.h"
@@ -18,6 +23,41 @@ std::map<int, Polygon*> PT;
 std::map<int, ActiveEdge*> AET;		// 描线的活化边表
 std::map<int, ActivePolygon*> APT;	// 描线的活化多边形表
 
+void EraseScanlineInfoInAET(int y)
+{
+	std::map<int, ActiveEdge*>::iterator it;
+	it = AET.find(y);
+	if(it != AET.end())
+	{
+		ActiveEdge* ae = it->second;
+		while(ae)
+		{
+			ActiveEdge* temp = ae->next_;
+			free(ae);
+			ae = temp;
+		}
+
+		AET.erase(it);
+	}
+}
+
+void EraseScanlineInfoInAPT(int y)
+{
+	std::map<int, ActivePolygon*>::iterator it;
+	it = APT.find(y);
+	if(it != APT.end())
+	{
+		ActivePolygon* ap = it->second;
+		while(ap)
+		{
+			ActivePolygon* temp = ap->next_;
+			free(ap);
+
+			ap = temp;
+		}
+		APT.erase(it);
+	}
+}
 
 void InsertPolygonToPT(Polygon* polygon)
 {
@@ -537,6 +577,14 @@ void ScaneLine(int cur_y)
 		// draw background for the whole line
 		printf("[y=%d] draw the whole line with bg color\n", cur_y);
 	}
+
+	// destroy last scaneline info in APT&AET
+	if(cur_y > 0)
+	{
+		EraseScanlineInfoInAPT(cur_y - 1);
+		EraseScanlineInfoInAET(cur_y - 1);
+	}
+
 
 }
 
