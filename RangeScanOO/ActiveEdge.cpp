@@ -51,11 +51,11 @@ ActiveEdge::ActiveEdge(Edge* e1, Edge* e2)
 ActiveEdge::ActiveEdge(ActiveEdge* update_from_ae)
 {
 	dxl_ = update_from_ae->dxl_;
-	xl_ = update_from_ae->xl_ + dxl_;
+	xl_ = update_from_ae->xl_ + dxl_ + 0.5f;  //ËÄÉáÎåÈë
 	dyl_ = update_from_ae->dyl_ - 1;
 
 	dxr_ = update_from_ae->dxr_;
-	xr_ = update_from_ae->xr_ + dxr_;
+	xr_ = update_from_ae->xr_ + dxr_ + 0.5f;
 	dyr_ = update_from_ae->dyr_ - 1;
 
 	zl_ = zl_ + dzx_ * dxl_ + dzy_;
