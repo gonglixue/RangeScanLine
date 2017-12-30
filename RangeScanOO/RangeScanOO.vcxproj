@@ -152,6 +152,7 @@
     <ClInclude Include="ActiveEdge.h" />
     <ClInclude Include="ActivePolygon.h" />
     <ClInclude Include="Edge.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="Polygon.h" />
     <ClInclude Include="RangeInter.h" />
   </ItemGroup>
@@ -160,6 +161,7 @@
     <ClCompile Include="ActivePolygon.cpp" />
     <ClCompile Include="Edge.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Polygon.cpp" />
     <ClCompile Include="RangeInter.cpp" />
   </ItemGroup>

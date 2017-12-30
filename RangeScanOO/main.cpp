@@ -13,6 +13,7 @@
 
 #include "ActiveEdge.h"
 #include "RangeInter.h"
+#include "Mesh.h"
 
 const int WIN_WIDTH = 400;
 const int WIN_HEIGHT = 400;
@@ -360,8 +361,6 @@ void InitSceneData()
 	Polygon* p1 = new Polygon(t1_p1, t1_p2, t1_p3, glm::vec3(255, 0, 0));
 	Polygon* p2 = new Polygon(t2_p1, t2_p2, t2_p3, glm::vec3(0,0,255));
 
-
-
 	// 构造分类多边形表
 	// 往ET里插入多边形
 	InsertPolygonToPT(p1);
@@ -387,6 +386,38 @@ void InitSceneData()
 	InsertEdgeToET(e6);
 
 
+}
+
+void InitSceneData(Mesh mesh)
+{
+	// 遍历每个三角形
+	for (int i = 0; i < mesh.indices_.size(); i++)
+	{
+		glm::vec3 p1, p2, p3;
+		int indx, indy, indz;
+		indx = mesh.indices_[i].x;
+		indy = mesh.indices_[i].y;
+		indz = mesh.indices_[i].z;
+
+		p1 = mesh.vertices_[indx];
+		p2 = mesh.vertices_[indy];
+		p3 = mesh.vertices_[indz];
+
+		Polygon* polygon = new Polygon(p1, p2, p3);
+		InsertPolygonToPT(polygon);
+
+		// 构建边数据结构
+		Edge* e1 = new Edge(p1, p2, polygon);
+		Edge* e2 = new Edge(p2, p3, polygon);
+		Edge* e3 = new Edge(p3, p1, polygon);
+		polygon->AddEdge(e1, e2, e3);
+
+		InsertEdgeToET(e1);
+		InsertEdgeToET(e2);
+		InsertEdgeToET(e3);
+	}
+
+	
 }
 
 bool compare_range_inter(RangeInter* item1, RangeInter* item2)
@@ -652,7 +683,9 @@ void myDisplay() {
 }
 
 int main(int argc, char* argv[]) {
-	InitSceneData();
+	//InitSceneData();
+	Mesh mesh("./bunny.obj");
+	InitSceneData(mesh);
 	for (int i = 0; i < WIN_HEIGHT; i++)
 	{
 		ScaneLine(i);
