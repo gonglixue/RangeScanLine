@@ -2,6 +2,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <opencv2\opencv.hpp>
 
 #ifdef _WIN32
     #include <glut.h>
@@ -22,6 +23,11 @@ std::map<int, Edge*> ET;
 std::map<int, Polygon*> PT;
 std::map<int, ActiveEdge*> AET;		// 描线的活化边表
 std::map<int, ActivePolygon*> APT;	// 描线的活化多边形表
+cv::Mat canvas = cv::Mat::zeros(WIN_HEIGHT, WIN_WIDTH, CV_8UC3);
+
+// function declaration
+void DrawInCVWindow(int y, int x_begin, int x_end, glm::vec3 color);
+
 
 void EraseScanlineInfoInAET(int y)
 {
@@ -344,12 +350,12 @@ void InitSceneData()
 	// 定义两个三角形
 	// triangle 1
 	glm::vec3 t1_p1 = glm::vec3(50, 50, 10);
-	glm::vec3 t1_p3 = glm::vec3(100, 300, 10);
+	glm::vec3 t1_p3 = glm::vec3(100, 200, 15);
 	glm::vec3 t1_p2 = glm::vec3(300, 100, 10);
 	// triangle 2
 	glm::vec3 t2_p1 = glm::vec3(100, 100, 5);
 	glm::vec3 t2_p2 = glm::vec3(300, 200, 5);
-	glm::vec3 t2_p3 = glm::vec3(300, 300, 5);
+	glm::vec3 t2_p3 = glm::vec3(300, 300, 10);
 
 	Polygon* p1 = new Polygon(t1_p1, t1_p2, t1_p3, glm::vec3(255, 0, 0));
 	Polygon* p2 = new Polygon(t2_p1, t2_p2, t2_p3, glm::vec3(0,0,255));
@@ -595,11 +601,13 @@ void ScaneLine(int cur_y)
 
 				if (max_z_polygon) {
 					// draw [left,right] with max_z_polygon's color
+					DrawInCVWindow(cur_y, left->x_, right->x_, max_z_polygon->color_);
 					printf("[y=%d] draw [%d, %d] with %d_polygon's color\n", cur_y, int(left->x_+0.5), int(right->x_+0.5), max_z_polygon->id_);
 				}
 				else {
 					// 没有多边形在此区间
 					// draw [left, right] with background color
+					DrawInCVWindow(cur_y, left->x_, right->x_, glm::vec3(0, 0, 0));
 					printf("[y=%d] draw [%d, %d] with bg's color\n", cur_y, int(left->x_+0.5), int(right->x_+0.5));
 				}
 
@@ -612,6 +620,7 @@ void ScaneLine(int cur_y)
 	}
 	else {
 		// draw background for the whole line
+		DrawInCVWindow(cur_y, 0, WIN_WIDTH - 1, glm::vec3(0,0,0));
 		printf("[y=%d] draw the whole line with bg color\n", cur_y);
 	}
 
@@ -628,9 +637,17 @@ void ScaneLine(int cur_y)
 void myDisplay() {
 	glClearColor(1.0, 1.0, 1.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glColor3f(1.0, 0.0, 0.0);
+	glColor3f(0.0, 1.0, 0.0);
 	glRectf(-0.5f, -0.5f, 0.5f, 0.5f);
 	//glutSolidTeapot(1.0);
+
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDepthFunc(GL_ALWAYS);
+	glRasterPos3f(0.0, 0.0, 0.5);
+	glRasterPos2i(10, 10);
+	GLfloat data[] = { 1.0, 0.0, 0.0, 0.0 };
+	glDrawPixels(1, 1, GL_RGB, GL_FLOAT, data);
+
 	glFlush();
 }
 
@@ -652,4 +669,23 @@ int main(int argc, char* argv[]) {
 	glutMainLoop();
 	return 0;
 
+}
+
+
+void DrawInCVWindow(int y, int x_begin, int x_end, glm::vec3 color)
+{
+	for (int i = x_begin; i <= x_end; i++)
+	{
+		if (i >= WIN_WIDTH)
+			break;
+		// 边用白色
+		if (i == x_begin || i == x_end)
+		{
+			canvas.at<cv::Vec3b>(y, i) = cv::Vec3b(255, 255, 255);
+		}
+		else
+			canvas.at<cv::Vec3b>(y, i) = cv::Vec3b(color.x, color.y, color.z);
+	}
+
+	cv::imshow("canvas", canvas);
 }
