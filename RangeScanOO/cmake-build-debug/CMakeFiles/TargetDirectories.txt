@@ -1,3 +1,0 @@
-/home/gonglixue/文档/GLX/RangeScanLine/RangeScanOO/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/gonglixue/文档/GLX/RangeScanLine/RangeScanOO/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/gonglixue/文档/GLX/RangeScanLine/RangeScanOO/cmake-build-debug/CMakeFiles/RangeScanOO.dir

@@ -10,3 +10,4 @@ Makefile
 cmake-build-debug/
 CMakeFiles/
 .idea/
+mid_imgs/
