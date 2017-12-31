@@ -2,6 +2,8 @@
 #include "Edge.h"
 #include <glm/glm.hpp>
 class Edge;
+class ActiveEdge;
+
 class Polygon
 {
 public:
@@ -9,6 +11,7 @@ public:
 	int id_;					// 多边形编号
 	int dy_;					// 跨越多边形的扫描线数
 	glm::vec3 color_;			// 多边形颜色
+	glm::vec3 normal_;
 
 								// 所输入的多边形为三角形
 	glm::vec3 p1_world_, p2_world_, p3_world_;		// 三个顶点的世界坐标
@@ -25,4 +28,6 @@ public:
 	Polygon(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color = glm::vec3(255, 0, 0));
 	void AddEdge(Edge* e1, Edge* e2, Edge* e3);
 	void IntersectWithScanLine(int scan_y, bool& flag1, bool& flag2, bool& flag3);
+	ActiveEdge* GetLeftTwoEdgeWhenParallel();
+
 };

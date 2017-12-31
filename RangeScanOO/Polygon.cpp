@@ -1,10 +1,22 @@
 #include <stdio.h>
 #include "Polygon.h"
+#include "ActiveEdge.h"
 
 Polygon::Polygon(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color)
 {
 	static int static_id = 0;
 	id_ = static_id++;
+	
+	// 用原始逆时针定义的三角形坐标求解平面方程
+	glm::vec3 normal = glm::cross(p2 - p1, p3 - p1);
+	a_ = normal.x;
+	b_ = normal.y;
+	c_ = normal.z;
+	d_ = (glm::dot(normal, p1)) * (-1);
+
+	color_ = color;
+	normal_ = glm::normalize(normal);
+
 	// 按屏幕y坐标由小到大排序(直接取世界坐标）
 	// p1.y < p2.y < p3.y
 	if (p1.y > p2.y) {
@@ -35,14 +47,7 @@ Polygon::Polygon(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color)
 	p2_screen_ = glm::vec2(p2.x, p2.y);
 	p3_screen_ = glm::vec2(p3.x, p3.y);
 
-	// 求解平面方程
-	glm::vec3 normal = glm::cross(p3 - p1, p2 - p1);
-	a_ = normal.x;
-	b_ = normal.y;
-	c_ = normal.z;
-	d_ = (glm::dot(normal, p1)) * (-1);
 
-	color_ = color;
 	//dy_ = p3_screen_.y - p1_screen_.y + 1;  // ???
 	dy_ = p3_screen_.y - p1_screen_.y;
 	y_min_ = p1_screen_.y;
@@ -74,4 +79,15 @@ void Polygon::IntersectWithScanLine(int scan_y, bool& flag1, bool& flag2, bool& 
 		printf("Polygon::Polygon Scan Line can only intersect with a polygon at two or zero edge.\n");
 		exit(3);
 	}
+}
+
+ActiveEdge* Polygon::GetLeftTwoEdgeWhenParallel()
+{
+	// 找出e1 e2 e3 x_最小的两条边
+	if (e1_->x_ > e2_->x_ && e1_->x_ > e3_->x_)
+		return new ActiveEdge(e2_, e3_);
+	else if (e2_->x_ > e1_->x_ && e2_->x_ > e3_->x_)
+		return new ActiveEdge(e1_, e3_);
+	else
+		return new ActiveEdge(e1_, e2_);
 }

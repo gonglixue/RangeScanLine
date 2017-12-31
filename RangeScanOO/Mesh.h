@@ -14,5 +14,5 @@ public:
 
 	Mesh(std::string filename);
 	void normalize(float, float, float);
-	void transform(glm::mat4x4 model_matrix);
+	void transform(glm::mat4 model_matrix);
 };

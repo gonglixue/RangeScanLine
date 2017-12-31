@@ -21,6 +21,7 @@ Mesh::Mesh(std::string filename)
 		sscanf(line.c_str(), "%c %f %f %f", &flag, &x, &y, &z);
 		if (flag == 'v')
 		{
+			z = z*-1;
 			vertices_.push_back(glm::vec3(x, y, z));
 			if (x > max_x)
 				max_x = x;
@@ -74,8 +75,8 @@ Mesh::Mesh(std::string filename)
 void Mesh::normalize(float avg_x, float avg_y, float avg_z)
 {
 	float length = std::fmaxf(max_x_ - min_x_, max_y_ - min_x_);
-	float scale = 380.0 / length;
-	// scale 到 10~390
+	float scale = 200.0 / length;
+	// scale 到 50~650
 	float transx = 200 - avg_x * scale;
 	float transy = 200 - avg_y * scale;
 
@@ -86,7 +87,17 @@ void Mesh::normalize(float avg_x, float avg_y, float avg_z)
 	}
 }
 
-void Mesh::transform(glm::mat4x4)
+void Mesh::transform(glm::mat4 model_matrix)
 {
 	
+	// 此时以200,200为中心
+	for (int i = 0; i < vertices_.size(); i++)
+	{
+		glm::vec4 temp = glm::vec4(vertices_[i].x, vertices_[i].y, vertices_[i].z, 1);
+			
+		temp = model_matrix * (temp - glm::vec4(200, 200, 0, 0)) + glm::vec4(200, 200, 0, 0);
+		vertices_[i] = glm::vec3(temp.x, temp.y, temp.z);
+	}
+
+
 }

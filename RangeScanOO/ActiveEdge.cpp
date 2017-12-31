@@ -9,39 +9,80 @@ ActiveEdge::ActiveEdge(Edge* e1, Edge* e2)
 	//	exit(1);
 	//}
 
-	// 扫描线每向下处理一个单位，e1x的增量小于d2x，e1为左
-	if (e1->dx_ < e2->dx_)
+	// 如果两边有相同的上端点，扫描线每向下处理一个单位，e1x的增量小于d2x，e1为左，增量小的为左
+	if (fabs(e1->x_ - e2->x_) < 0.00001 && fabs(e1->y_up - e2->y_up))
 	{
-		xl_ = e1->x_;
-		dxl_ = e1->dx_;
-		dyl_ = e1->dy_;
+		if (e1->dx_ < e2->dx_)
+		{
+			xl_ = e1->x_;
+			dxl_ = e1->dx_;
+			dyl_ = e1->dy_;
 
-		xr_ = e2->x_;
-		dxr_ = e2->dx_;
-		dyr_ = e2->dy_;
+			xr_ = e2->x_;
+			dxr_ = e2->dx_;
+			dyr_ = e2->dy_;
 
 
 
-		edge_l_ = e1;
-		edge_r_ = e2;
+			edge_l_ = e1;
+			edge_r_ = e2;
 
+		}
+		else {
+			xl_ = e2->x_;
+			dxl_ = e2->dx_;
+			dyl_ = e2->dy_;
+
+			xr_ = e1->x_;
+			dxr_ = e1->dx_;
+			dyr_ = e1->dy_;
+
+			edge_l_ = e2;
+			edge_r_ = e1;
+		}
 	}
 	else {
-		xl_ = e2->x_;
-		dxl_ = e2->dx_;
-		dyl_ = e2->dy_;
+		// 没有相同的上端点，则x_小的为左
+		if (e1->x_ < e2->x_)
+		{
+			xl_ = e1->x_;
+			dxl_ = e1->dx_;
+			dyl_ = e1->dy_;
 
-		xr_ = e1->x_;
-		dxr_ = e1->dx_;
-		dyr_ = e1->dy_;
+			xr_ = e2->x_;
+			dxr_ = e2->dx_;
+			dyr_ = e2->dy_;
 
-		edge_l_ = e2;
-		edge_r_ = e1;
+
+
+			edge_l_ = e1;
+			edge_r_ = e2;
+		}
+		else {
+			xl_ = e2->x_;
+			dxl_ = e2->dx_;
+			dyl_ = e2->dy_;
+
+			xr_ = e1->x_;
+			dxr_ = e1->dx_;
+			dyr_ = e1->dy_;
+
+			edge_l_ = e2;
+			edge_r_ = e1;
+		}
 	}
 
-	zl_ = e1->z_up_;
-	dzx_ = -1.0 * e1->in_poly_->a_ / e1->in_poly_->c_;
-	dzy_ = -1.0 * e1->in_poly_->b_ / e1->in_poly_->c_;
+
+	zl_ = edge_l_->z_up_;
+	if (fabs(e1->in_poly_->c_) < 0.00001)
+		dzx_ = 0;  // 沿x方向不改变z？
+	else
+		dzx_ = -1.0 * e1->in_poly_->a_ / e1->in_poly_->c_;
+
+	if (fabs(e1->in_poly_->c_) < 0.00001)
+		dzx_ = 0;
+	else
+		dzy_ = -1.0 * e1->in_poly_->b_ / e1->in_poly_->c_;
 
 	poly_id_ = e1->in_poly_->id_;
 	next_ = NULL;
@@ -57,40 +98,85 @@ ActiveEdge::ActiveEdge(Edge* e1, Edge* e2, int scan_y)
 	//	exit(1);
 	//}
 
-	// 扫描线每向下处理一个单位，e1x的增量小于d2x，e1为左
-	if (e1->dx_ < e2->dx_)
-	{
-		xl_ = e1->x_ + (scan_y - e1->y_up) * e1->dx_;
-		dxl_ = e1->dx_;
-		dyl_ = e1->dy_ - (scan_y - e1->y_up);
+	// 如果两边有相同的上短线， 扫描线每向下处理一个单位，e1x的增量小于d2x，e1为左
+	//if (fabs(e1->x_ - e2->x_) < 0.00001 && fabs(e1->y_up - e2->y_up))
+	//{
+	//	if (e1->dx_ < e2->dx_)
+	//	{
+	//		xl_ = e1->x_ + (scan_y - e1->y_up) * e1->dx_;
+	//		dxl_ = e1->dx_;
+	//		dyl_ = e1->dy_ - (scan_y - e1->y_up);
 
-		xr_ = e2->x_ + (scan_y - e2->y_up)*e2->dx_;
-		dxr_ = e2->dx_;
-		dyr_ = e2->dy_ - (scan_y - e2->y_up);
+	//		xr_ = e2->x_ + (scan_y - e2->y_up)*e2->dx_;
+	//		dxr_ = e2->dx_;
+	//		dyr_ = e2->dy_ - (scan_y - e2->y_up);
 
 
 
-		edge_l_ = e1;
-		edge_r_ = e2;
+	//		edge_l_ = e1;
+	//		edge_r_ = e2;
 
-	}
-	else {
-		xl_ = e2->x_ + (scan_y - e2->y_up) * e2->dx_;
-		dxl_ = e2->dx_;
-		dyl_ = e2->dy_ - (scan_y - e2->y_up);
+	//	}
+	//	else {
+	//		xl_ = e2->x_ + (scan_y - e2->y_up) * e2->dx_;
+	//		dxl_ = e2->dx_;
+	//		dyl_ = e2->dy_ - (scan_y - e2->y_up);
 
-		xr_ = e1->x_ + (scan_y - e1->y_up)*e1->dx_;
-		dxr_ = e1->dx_;
-		dyr_ = e1->dy_ - (scan_y - e1->y_up);
+	//		xr_ = e1->x_ + (scan_y - e1->y_up)*e1->dx_;
+	//		dxr_ = e1->dx_;
+	//		dyr_ = e1->dy_ - (scan_y - e1->y_up);
 
-		edge_l_ = e2;
-		edge_r_ = e1;
-	}
+	//		edge_l_ = e2;
+	//		edge_r_ = e1;
+	//	}
+	//}
+	//else {
+		// 没有相同的上端点，则【当前x_】小的为左
+		float cur_x_e1, cur_x_e2;
+		cur_x_e1 = e1->x_ + (scan_y - e1->y_up) * e1->dx_;
+		cur_x_e2 = e2->x_ + (scan_y - e2->y_up) * e2->dx_;
+		if (cur_x_e1 < cur_x_e2)  // e1为左
+		{
+			xl_ = e1->x_ + (scan_y - e1->y_up) * e1->dx_;
+			dxl_ = e1->dx_;
+			dyl_ = e1->dy_ - (scan_y - e1->y_up);
+
+			xr_ = e2->x_ + (scan_y - e2->y_up)*e2->dx_;
+			dxr_ = e2->dx_;
+			dyr_ = e2->dy_ - (scan_y - e2->y_up);
+
+
+
+			edge_l_ = e1;
+			edge_r_ = e2;
+		}
+		else {
+			xl_ = e2->x_ + (scan_y - e2->y_up) * e2->dx_;
+			dxl_ = e2->dx_;
+			dyl_ = e2->dy_ - (scan_y - e2->y_up);
+
+			xr_ = e1->x_ + (scan_y - e1->y_up)*e1->dx_;
+			dxr_ = e1->dx_;
+			dyr_ = e1->dy_ - (scan_y - e1->y_up);
+
+			edge_l_ = e2;
+			edge_r_ = e1;
+		}
+	//}
+
 
 	//zl_ = e1->z_up_;
-	dzx_ = -1.0 * e1->in_poly_->a_ / e1->in_poly_->c_;
-	dzy_ = -1.0 * e1->in_poly_->b_ / e1->in_poly_->c_;
-	zl_ = e1->z_up_ + dzx_ * (xl_ - edge_l_->x_) + dzy_;
+	if (fabs(e1->in_poly_->c_) < 0.00001)
+		dzx_ = 0;  // 沿x方向不改变z？
+	else
+		dzx_ = -1.0 * e1->in_poly_->a_ / e1->in_poly_->c_;
+
+	if (fabs(e1->in_poly_->c_) < 0.00001)
+		dzx_ = 0;
+	else
+		dzy_ = -1.0 * e1->in_poly_->b_ / e1->in_poly_->c_;
+	//zl_ = e1->z_up_ + dzx_ * (xl_ - edge_l_->x_) + dzy_;
+	zl_ = edge_l_->z_up_ + dzx_ * (xl_ - edge_l_->x_) + dzy_ * (scan_y - edge_l_->y_up);
 
 	poly_id_ = e1->in_poly_->id_;
 	next_ = NULL;

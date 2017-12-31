@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <opencv2\opencv.hpp>
+#include <glm\gtc\matrix_transform.hpp>
 
 #ifdef _WIN32
     #include <glut.h>
@@ -28,7 +29,30 @@ cv::Mat canvas = cv::Mat::zeros(WIN_HEIGHT, WIN_WIDTH, CV_8UC3);
 
 // function declaration
 void DrawInCVWindow(int y, int x_begin, int x_end, glm::vec3 color);
+void DrawInCVWindow(int y, int x_begin, int x_end, Polygon* polygon);
 
+glm::vec3 light_pos = glm::vec3(0, 0, -1);
+glm::mat4 model = glm::mat4();
+glm::vec3 light_color = glm::vec3(1, 1, 1);
+
+std::vector<glm::vec3> color_table;
+
+void InitColorTable()
+{
+	color_table.push_back(glm::vec3(255, 0, 0));
+	color_table.push_back(glm::vec3(0, 255, 0));
+	color_table.push_back(glm::vec3(0, 0, 255));
+	color_table.push_back(glm::vec3(255, 255, 0));
+	color_table.push_back(glm::vec3(0, 255, 255));
+	color_table.push_back(glm::vec3(255, 0, 255));
+	color_table.push_back(glm::vec3(0, 0, 0));
+	color_table.push_back(glm::vec3(100, 0, 0));
+	color_table.push_back(glm::vec3(0, 100, 0));
+	color_table.push_back(glm::vec3(0, 0, 100));
+	color_table.push_back(glm::vec3(100, 100, 0));
+	color_table.push_back(glm::vec3(0, 100, 100));
+
+}
 
 void EraseScanlineInfoInAET(int y)
 {
@@ -390,6 +414,7 @@ void InitSceneData()
 
 void InitSceneData(Mesh mesh)
 {
+	InitColorTable();
 	// 遍历每个三角形
 	for (int i = 0; i < mesh.indices_.size(); i++)
 	{
@@ -403,7 +428,7 @@ void InitSceneData(Mesh mesh)
 		p2 = mesh.vertices_[indy];
 		p3 = mesh.vertices_[indz];
 
-		Polygon* polygon = new Polygon(p1, p2, p3);
+		Polygon* polygon = new Polygon(p1, p2, p3, color_table[i % 12]);
 		InsertPolygonToPT(polygon);
 
 		// 构建边数据结构
@@ -548,29 +573,45 @@ void ScaneLine(int cur_y)
 			else if (cur_y >= cur_polygon->p1_screen_.y && cur_y <= cur_polygon->p3_screen_.y)
 			{
 				printf("At scan line %d, Add new active polygon to APT.\n", cur_y);
-				// pt_it多边形与当前扫描线相交
-				// 把多边形放入活化多边形表
-				ActivePolygon* active_polygon = new ActivePolygon(cur_polygon);
-				InsertActivePolygonToAPT(active_polygon, cur_y);
+
 
 				// 把该多边形与当前扫描线相交的边对，加入到活化边表里
 				bool flag1, flag2, flag3;  // 是否与三条边相交
 				flag1 = flag2 = flag3 = false;
 				cur_polygon->IntersectWithScanLine(cur_y, flag1, flag2, flag3);
-				if (!flag1) {
+				if (!flag2 && !flag2 && !flag3)
+				{
+					//// 和三条边都不相交，说明该面重合于扫描线，取以最左边的顶点为端点的两条边
+					//ActiveEdge* active_edge = cur_polygon->GetLeftTwoEdgeWhenParallel();
+					//InsertActiveEdgeToAET(active_edge, cur_y);
+					// 与扫描线重合的面不活化
+				}
+				else if (!flag1) {
 					// e2 e3
 					ActiveEdge* active_edge = new ActiveEdge(cur_polygon->e2_, cur_polygon->e3_);
 					InsertActiveEdgeToAET(active_edge, cur_y);
+					// pt_it多边形与当前扫描线相交
+					// 把多边形放入活化多边形表
+					ActivePolygon* active_polygon = new ActivePolygon(cur_polygon);
+					InsertActivePolygonToAPT(active_polygon, cur_y);
 				}
 				else if (!flag2) {
 					// e1 e3
 					ActiveEdge* active_edge = new ActiveEdge(cur_polygon->e1_, cur_polygon->e3_);
 					InsertActiveEdgeToAET(active_edge, cur_y);
+					// pt_it多边形与当前扫描线相交
+					// 把多边形放入活化多边形表
+					ActivePolygon* active_polygon = new ActivePolygon(cur_polygon);
+					InsertActivePolygonToAPT(active_polygon, cur_y);
 				}
 				else if (!flag3) {
 					// e1 e2
 					ActiveEdge* active_edge = new ActiveEdge(cur_polygon->e1_, cur_polygon->e2_);
 					InsertActiveEdgeToAET(active_edge, cur_y);
+					// pt_it多边形与当前扫描线相交
+					// 把多边形放入活化多边形表
+					ActivePolygon* active_polygon = new ActivePolygon(cur_polygon);
+					InsertActivePolygonToAPT(active_polygon, cur_y);
 				}
 				else {
 					printf("Main::scan line can only intersect with a polygon at two edges.\n");
@@ -595,6 +636,9 @@ void ScaneLine(int cur_y)
 		{
 			RangeInter* left = range_list[i];
 			RangeInter* right = range_list[i + 1];
+			if (fabs(left->x_ - right->x_) < 0.00001)  // remove duplicate
+				continue;
+
 			// 判断每个多边形，比较在此区间的z
 			std::map<int, ActivePolygon*>::iterator it;
 			it = APT.find(cur_y);
@@ -606,6 +650,10 @@ void ScaneLine(int cur_y)
 				float max_z;
 				while (polygon)
 				{
+
+
+
+
 					int centerx = (left->x_ + right->x_) / 2;
 					if (PolygonIsInRange(polygon, centerx, cur_y))
 					{
@@ -613,7 +661,7 @@ void ScaneLine(int cur_y)
 						{
 							// 比较中点深度值
 							ActiveEdge* ae = GetActiveEdge(polygon->polygon_->id_, cur_y);
-							float cur_z = ae->zl_ + ae->dzx_*(centerx - ae->zl_);
+							float cur_z = ae->zl_ + ae->dzx_*(centerx - ae->xl_);
 							if (cur_z > max_z) {
 								max_z = cur_z;
 								max_z_polygon = polygon->polygon_;
@@ -622,7 +670,7 @@ void ScaneLine(int cur_y)
 						}
 						else if (!max_z_polygon) {
 							ActiveEdge* ae = GetActiveEdge(polygon->polygon_->id_, cur_y);
-							float cur_z = ae->zl_ + ae->dzx_*(centerx - ae->zl_);
+							float cur_z = ae->zl_ + ae->dzx_*(centerx - ae->xl_);
 							max_z = cur_z;
 							max_z_polygon = polygon->polygon_;
 						}
@@ -632,7 +680,8 @@ void ScaneLine(int cur_y)
 
 				if (max_z_polygon) {
 					// draw [left,right] with max_z_polygon's color
-					DrawInCVWindow(cur_y, left->x_, right->x_, max_z_polygon->color_);
+					// DrawInCVWindow(cur_y, left->x_, right->x_, max_z_polygon->color_);
+					DrawInCVWindow(cur_y, left->x_, right->x_, max_z_polygon);
 					printf("[y=%d] draw [%d, %d] with %d_polygon's color\n", cur_y, int(left->x_+0.5), int(right->x_+0.5), max_z_polygon->id_);
 				}
 				else {
@@ -684,8 +733,14 @@ void myDisplay() {
 
 int main(int argc, char* argv[]) {
 	//InitSceneData();
-	Mesh mesh("./bunny.obj");
+	Mesh mesh("./cube.obj");
+	model = glm::rotate(model, 10.0f, glm::vec3(0, 1, 0));
+	model = glm::rotate(model, 5.0f, glm::vec3(1, 0, 0));
+	model = glm::rotate(model, 5.0f, glm::vec3(0, 0, 1));
+
+	mesh.transform(model);
 	InitSceneData(mesh);
+	
 	for (int i = 0; i < WIN_HEIGHT; i++)
 	{
 		ScaneLine(i);
@@ -707,18 +762,37 @@ int main(int argc, char* argv[]) {
 
 void DrawInCVWindow(int y, int x_begin, int x_end, glm::vec3 color)
 {
-	for (int i = x_begin; i <= x_end; i++)
+	for (int i = x_begin; i <= x_end+1; i++)
 	{
 		if (i >= WIN_WIDTH)
 			break;
-		// 边用白色
-		if (i == x_begin || i == x_end)
-		{
-			canvas.at<cv::Vec3b>(y, i) = cv::Vec3b(255, 255, 255);
-		}
-		else
+		if (i < 0)
+			continue;
+		// //边用白色
+		//if (i == x_begin || i == x_end)
+		//{
+		//	canvas.at<cv::Vec3b>(y, i) = cv::Vec3b(255, 255, 255);
+		//}
+		//else
 			canvas.at<cv::Vec3b>(y, i) = cv::Vec3b(color.x, color.y, color.z);
 	}
 
 	cv::imshow("canvas", canvas);
+	char fn[100];
+	sprintf(fn, "./mid_imgs/%d.jpg", y);
+	cv::imwrite(fn, canvas);
+}
+
+void DrawInCVWindow(int y, int x_begin, int x_end, Polygon* polygon)
+{
+	glm::vec3 light_dir = glm::normalize(light_pos);
+	float diffuse = glm::dot(polygon->normal_, light_dir);
+	diffuse = (diffuse > 0) ? diffuse : 0;
+
+	glm::vec3 diffuse_color = 255.0f * diffuse * light_color;
+
+	//diffuse_color = polygon->color_;
+	DrawInCVWindow(y, x_begin, x_end, diffuse_color);
+	//DrawInCVWindow(y, x_begin, x_end, polygon->color_);
+
 }
