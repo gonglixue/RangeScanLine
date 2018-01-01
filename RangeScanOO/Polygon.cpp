@@ -36,10 +36,10 @@ Polygon::Polygon(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color)
 		p3 = temp;
 	}
 
-	printf("Polygon: %d\n", id_);
-	printf("(%f, %f, %f) (%f, %f, %f) (%f,%f,%f)\n", p1.x, p1.y, p1.z,
-		p2.x, p2.y, p2.z,
-		p3.x, p3.y, p3.z);
+	//printf("Polygon: %d\n", id_);
+	//printf("(%f, %f, %f) (%f, %f, %f) (%f,%f,%f)\n", p1.x, p1.y, p1.z,
+		//p2.x, p2.y, p2.z,
+		//p3.x, p3.y, p3.z);
 
 	p1_world_ = p1;
 	p2_world_ = p2;
@@ -51,7 +51,7 @@ Polygon::Polygon(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color)
 
 	//dy_ = p3_screen_.y - p1_screen_.y + 1;  // ???
 	dy_ = p3_screen_.y - p1_screen_.y;
-	y_min_ = p1_screen_.y;
+	y_min_ = int(p1_screen_.y+0.5);
 	next_ = NULL;
 	flag = false;
 }

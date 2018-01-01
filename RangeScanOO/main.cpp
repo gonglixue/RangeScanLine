@@ -2,19 +2,17 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <time.h>
 #include <opencv2\opencv.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 
-#ifdef _WIN32
-    #include <glut.h>
-#elif __linux
-    #include <GL/glut.h>
-#endif
 // 扫描线由上到下扫，及y由小到大；
 
 #include "ActiveEdge.h"
 #include "RangeInter.h"
 #include "Mesh.h"
+
+#define eps 0.6f
 
 const int WIN_WIDTH = 400;
 const int WIN_HEIGHT = 400;
@@ -495,8 +493,19 @@ bool PolygonIsInRange(ActivePolygon* polygon, float centerx, int cur_y)
 	}
 
 	//if (centerx >= ae->xl_ && centerx <= ae->xr_)
-	if((centerx - ae->xl_)*(centerx-ae->xr_) <= 0) // =?
+	//if((centerx - ae->xl_)*(centerx-ae->xr_) <= 0) // =?
+	float ae_left, ae_right;
+	if (ae->xl_ < ae->xr_) {
+		ae_left = ae->xl_;
+		ae_right = ae->xr_;
+	}
+	else {
+		ae_right = ae->xl_;
+		ae_left = ae->xr_;
+	}
 		
+	//if((int(centerx+0.5)-int(ae_left+0.5)) * (int(centerx+0.5)-int(ae_right+0.5)) <= 0)
+	if(centerx>=(ae_left-eps) && centerx<=(ae_right+eps))
 	{
 		return true;
 	}
@@ -578,7 +587,7 @@ void ScaneLine(int cur_y)
 			// 该多边形不在活化多边形表里，是新的多边形
 			else if (cur_y >= cur_polygon->p1_screen_.y && cur_y <= cur_polygon->p3_screen_.y)
 			{
-				printf("At scan line %d, Add new active polygon to APT.\n", cur_y);
+				//printf("At scan line %d, Add new active polygon to APT.\n", cur_y);
 
 
 				// 把该多边形与当前扫描线相交的边对，加入到活化边表里
@@ -643,6 +652,8 @@ void ScaneLine(int cur_y)
 		{
 			RangeInter* left = range_list[i];
 			RangeInter* right = range_list[i + 1];
+			float centerx = (int(left->x_+0.5) + int(right->x_+0.5)) / 2.0;
+
 			//if (fabs(left->x_ - right->x_) < 0.00001)  // remove duplicate
 			if(int(left->x_+0.5) == int(right->x_+0.5))
 				continue;
@@ -670,7 +681,7 @@ void ScaneLine(int cur_y)
 
 
 
-					float centerx = (left->x_ + right->x_) / 2;
+					
 					if (PolygonIsInRange(polygon, centerx, cur_y))
 					{
 						if (max_z_polygon)
@@ -699,13 +710,13 @@ void ScaneLine(int cur_y)
 					// DrawInCVWindow(cur_y, left->x_, right->x_, max_z_polygon->color_);
 					DrawInCVWindow(cur_y, left->x_+0.5, right->x_+0.5, max_z_polygon);
 					last_polygon = max_z_polygon;
-					printf("[y=%d] draw [%d, %d] with %d_polygon's color\n", cur_y, int(left->x_+0.5), int(right->x_+0.5), max_z_polygon->id_);
+					//printf("[y=%d] draw [%d, %d] with %d_polygon's color\n", cur_y, int(left->x_+0.5), int(right->x_+0.5), max_z_polygon->id_);
 				}
 				else {
 					// 没有多边形在此区间
 					// draw [left, right] with background color
 					//DrawInCVWindow(cur_y, left->x_+0.5, right->x_+0.5, glm::vec3(0, 0, 0));
-					printf("[y=%d] draw [%d, %d] with bg's color\n", cur_y, int(left->x_+0.5), int(right->x_+0.5));
+					//printf("[y=%d] draw [%d, %d] with bg's color\n", cur_y, int(left->x_+0.5), int(right->x_+0.5));
 				}
 
 			}
@@ -731,47 +742,37 @@ void ScaneLine(int cur_y)
 
 }
 
-void myDisplay() {
-	glClearColor(1.0, 1.0, 1.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glColor3f(0.0, 1.0, 0.0);
-	glRectf(-0.5f, -0.5f, 0.5f, 0.5f);
-	//glutSolidTeapot(1.0);
-
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDepthFunc(GL_ALWAYS);
-	glRasterPos3f(0.0, 0.0, 0.5);
-	glRasterPos2i(10, 10);
-	GLfloat data[] = { 1.0, 0.0, 0.0, 0.0 };
-	glDrawPixels(1, 1, GL_RGB, GL_FLOAT, data);
-
-	glFlush();
-}
 
 int main(int argc, char* argv[]) {
 	//InitSceneData();
-	Mesh mesh("./bunny2.obj");
-	model = glm::rotate(model, 0.0f, glm::vec3(0, 1, 0));
-	model = glm::rotate(model, 0.0f, glm::vec3(1, 0, 0));
-	model = glm::rotate(model, 0.0f, glm::vec3(0, 0, 1));
+	std::string filename;
+	if (argc != 2)
+		filename = "./cube.obj";
+	else
+		filename = argv[1];
 
+	clock_t start = clock();
+	Mesh mesh(filename);
+	model = glm::rotate(model, 0.0f, glm::vec3(0, 1, 0));
+	model = glm::rotate(model, 3.1410f, glm::vec3(1, 0, 0));
+	model = glm::rotate(model, 0.0f, glm::vec3(0, 0, 1));
 	mesh.transform(model);
 	InitSceneData(mesh);
+	clock_t finish = clock();
+	printf("face number: %d\n", mesh.indices_.size());
+	printf("Init time: %lf ms\n", 1000.0*(finish - start) / CLOCKS_PER_SEC);
 	
+	start = clock();
 	for (int i = 0; i < WIN_HEIGHT; i++)
 	{
 		ScaneLine(i);
 	}
+	finish = clock();
+	printf("scan time: %lf ms\n", 1000.0*(finish - start) / CLOCKS_PER_SEC);
 
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
-
-	glutInitWindowPosition(WIN_WIDTH, WIN_HEIGHT);
-	glutInitWindowSize(200, 200);
-	glutCreateWindow("range scane culling");
-
-	glutDisplayFunc(myDisplay);
-	glutMainLoop();
+	cv::imshow("canvas", canvas);
+	cv::imwrite("zbuffer.jpg", canvas);
+	cv::waitKey(0);
 	return 0;
 
 }
@@ -794,10 +795,10 @@ void DrawInCVWindow(int y, int x_begin, int x_end, glm::vec3 color)
 			canvas.at<cv::Vec3b>(y, i) = cv::Vec3b(color.x, color.y, color.z);
 	}
 
-	cv::imshow("canvas", canvas);
-	char fn[100];
-	sprintf(fn, "./mid_imgs2/%d.jpg", y);
-	cv::imwrite(fn, canvas);
+	//cv::imshow("canvas", canvas);
+	//char fn[100];
+	//sprintf(fn, "./mid_imgs2/%d.jpg", y);
+	//cv::imwrite(fn, canvas);
 }
 
 void DrawInCVWindow(int y, int x_begin, int x_end, Polygon* polygon)

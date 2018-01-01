@@ -6,6 +6,7 @@ class Edge
 {
 public:
 	float x_;					// 边的上端点x 的屏幕空间坐标（左上角为原点）
+	float x_down_;				// 边的下端点
 	float y_up;					// 上端点的y
 	float y_down;					// 下端点的y
 	float z_up_;				// 上端点的z

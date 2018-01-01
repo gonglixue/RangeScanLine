@@ -15,12 +15,14 @@ Edge::Edge(glm::vec3 p1, glm::vec3 p2, Polygon* in_poly)
 		y_up = p1.y;
 		y_down = p2.y;
 		z_up_ = p1.z;
+		x_down_ = p2.x;
 	}
 	else {
 		x_ = p2.x;
 		y_up = p2.y;
 		y_down = p1.y;
 		z_up_ = p2.z;
+		x_down_ = p1.x;
 	}
 
 	if ((p2.x - p1.x) != 0) {
