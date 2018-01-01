@@ -133,15 +133,15 @@ ActiveEdge::ActiveEdge(Edge* e1, Edge* e2, int scan_y)
 	//else {
 		// 没有相同的上端点，则【当前x_】小的为左
 		float cur_x_e1, cur_x_e2;
-		cur_x_e1 = e1->x_ + (scan_y - e1->y_up) * e1->dx_;
-		cur_x_e2 = e2->x_ + (scan_y - e2->y_up) * e2->dx_;
+		cur_x_e1 = e1->x_ + (scan_y - int(e1->y_up+0.5))*1.0 * e1->dx_;
+		cur_x_e2 = e2->x_ + (scan_y - int(e2->y_up+0.5))*1.0 * e2->dx_;
 		if (cur_x_e1 < cur_x_e2)  // e1为左
 		{
-			xl_ = e1->x_ + (scan_y - e1->y_up) * e1->dx_;
+			xl_ = cur_x_e1;
 			dxl_ = e1->dx_;
-			dyl_ = e1->dy_ - (scan_y - e1->y_up);
+			dyl_ = e1->dy_ - (scan_y - int(e1->y_up+0.5));
 
-			xr_ = e2->x_ + (scan_y - e2->y_up)*e2->dx_;
+			xr_ = cur_x_e2;
 			dxr_ = e2->dx_;
 			dyr_ = e2->dy_ - (scan_y - e2->y_up);
 
@@ -186,7 +186,7 @@ ActiveEdge::ActiveEdge(Edge* e1, Edge* e2, int scan_y)
 ActiveEdge::ActiveEdge(ActiveEdge* update_from_ae)
 {
 	dxl_ = update_from_ae->dxl_;
-	xl_ = update_from_ae->xl_ + dxl_;  //四舍五入
+	xl_ = update_from_ae->xl_ + dxl_; 
 	dyl_ = update_from_ae->dyl_ - 1;
 
 	dxr_ = update_from_ae->dxr_;

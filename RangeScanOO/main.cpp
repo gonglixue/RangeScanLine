@@ -31,7 +31,7 @@ cv::Mat canvas = cv::Mat::zeros(WIN_HEIGHT, WIN_WIDTH, CV_8UC3);
 void DrawInCVWindow(int y, int x_begin, int x_end, glm::vec3 color);
 void DrawInCVWindow(int y, int x_begin, int x_end, Polygon* polygon);
 
-glm::vec3 light_pos = glm::vec3(0, 0, -1);
+glm::vec3 light_pos = glm::vec3(10, -10, -10);
 glm::mat4 model = glm::mat4();
 glm::vec3 light_color = glm::vec3(1, 1, 1);
 
@@ -266,8 +266,10 @@ ActivePolygon* PolygonIsNotEnd(int poly_id, int scan_y)
 			{
 				if (temp->dy_ > 0) //? >=0
 					return temp;
-				else
+				else {
+					temp->polygon_->alread_drawn = true;
 					return NULL;
+				}
 			}
 			temp = temp->next_;
 		}
@@ -309,10 +311,8 @@ bool CheckEndInAET(int last_scan_y)
 					//free(temp_next);
 
 					if (!flag1 && !flag2 && !flag3) {
-						// TODO 有边结束，且三条边都结束
-						// 删除APT里last_scan_y的polygon，
-						// 删除活化边表里last_scan_y poly_id的边。
-						// 。。。
+						// 有边结束，且三条边都结束
+
 					}
 					else if (!flag1) {
 						ActiveEdge* active_edge = new ActiveEdge(active_polygon->polygon_->e2_, active_polygon->polygon_->e3_, last_scan_y+1);
@@ -339,7 +339,7 @@ bool CheckEndInAET(int last_scan_y)
 					}
 					
 				}
-				//return true; 结束的边可能有多条
+
 			}
 
 			// 边不结束
@@ -486,7 +486,7 @@ bool PolygonIsInRange(ActivePolygon* polygon, RangeInter* left, RangeInter* righ
 
 }
 
-bool PolygonIsInRange(ActivePolygon* polygon, int centerx, int cur_y)
+bool PolygonIsInRange(ActivePolygon* polygon, float centerx, int cur_y)
 {
 	ActiveEdge* ae = GetActiveEdge(polygon->polygon_->id_, cur_y);  // 该多边形的active edge
 	if (ae == NULL) {
@@ -496,6 +496,7 @@ bool PolygonIsInRange(ActivePolygon* polygon, int centerx, int cur_y)
 
 	//if (centerx >= ae->xl_ && centerx <= ae->xr_)
 	if((centerx - ae->xl_)*(centerx-ae->xr_) <= 0) // =?
+		
 	{
 		return true;
 	}
@@ -533,7 +534,7 @@ std::vector<RangeInter*> GetRangeFromAET(int cur_y)
 		}
 	}
 	else {
-		printf("GetRangeFromAET::cannot get range list.\n");
+		//printf("GetRangeFromAET::cannot get range list.\n");
 	}
 
 	range_list.push_back(new RangeInter(NULL, WIN_WIDTH));
@@ -547,7 +548,7 @@ void ScaneLine(int cur_y)
 {
 	// 如果有些边在这条扫描线结束了（上条扫描线活化边表里的边dy=0）
 	bool ifEnd = CheckEndInAET(cur_y - 1);		// 根据相交是否结束构建当前扫描线的活化边、活化多边形
-	printf("At scan line %d, ifEnd:%d.\n", cur_y, ifEnd);
+	//printf("At scan line %d, ifEnd:%d.\n", cur_y, ifEnd);
 
 
 	// 遍历PT，是否有多边形涉及当前扫描线
@@ -558,6 +559,11 @@ void ScaneLine(int cur_y)
 		Polygon* cur_polygon = pt_it->second;
 		while (cur_polygon)
 		{
+			if (cur_polygon->alread_drawn) {
+				//printf("skip polygon already drawn.\n");
+				cur_polygon = cur_polygon->next_;
+				continue;
+			}
 			// 如果该多边形已经在活化多边形表里了
 			//if (PolygonIsActive(cur_polygon->id_, cur_y - 1))
 			if(PolygonIsNotEnd(cur_polygon->id_, cur_y - 1))
@@ -632,12 +638,22 @@ void ScaneLine(int cur_y)
 	// 遍历每个区间
 	if (range_list.size() > 2)
 	{
+		Polygon* last_polygon = NULL;
 		for (int i = 0; i < range_list.size() - 1; i++)
 		{
 			RangeInter* left = range_list[i];
 			RangeInter* right = range_list[i + 1];
-			if (fabs(left->x_ - right->x_) < 0.00001)  // remove duplicate
+			//if (fabs(left->x_ - right->x_) < 0.00001)  // remove duplicate
+			if(int(left->x_+0.5) == int(right->x_+0.5))
 				continue;
+			//if ((int(left->x_ + 0.5) + 1) == int(right->x_ + 0.5)) {
+			//	// 1像素宽的区间特殊chuli
+			//	if (last_polygon) {
+			//		printf("[y=%d] draw [%d, %d] with %d_polygon's color\n", cur_y, int(left->x_ + 0.5), int(right->x_ + 0.5), last_polygon->id_);
+			//		DrawInCVWindow(cur_y, left->x_ + 0.5, right->x_ + 0.5, last_polygon);
+			//		continue;
+			//	}
+			//}
 
 			// 判断每个多边形，比较在此区间的z
 			std::map<int, ActivePolygon*>::iterator it;
@@ -654,7 +670,7 @@ void ScaneLine(int cur_y)
 
 
 
-					int centerx = (left->x_ + right->x_) / 2;
+					float centerx = (left->x_ + right->x_) / 2;
 					if (PolygonIsInRange(polygon, centerx, cur_y))
 					{
 						if (max_z_polygon)
@@ -681,13 +697,14 @@ void ScaneLine(int cur_y)
 				if (max_z_polygon) {
 					// draw [left,right] with max_z_polygon's color
 					// DrawInCVWindow(cur_y, left->x_, right->x_, max_z_polygon->color_);
-					DrawInCVWindow(cur_y, left->x_, right->x_, max_z_polygon);
+					DrawInCVWindow(cur_y, left->x_+0.5, right->x_+0.5, max_z_polygon);
+					last_polygon = max_z_polygon;
 					printf("[y=%d] draw [%d, %d] with %d_polygon's color\n", cur_y, int(left->x_+0.5), int(right->x_+0.5), max_z_polygon->id_);
 				}
 				else {
 					// 没有多边形在此区间
 					// draw [left, right] with background color
-					DrawInCVWindow(cur_y, left->x_, right->x_, glm::vec3(0, 0, 0));
+					//DrawInCVWindow(cur_y, left->x_+0.5, right->x_+0.5, glm::vec3(0, 0, 0));
 					printf("[y=%d] draw [%d, %d] with bg's color\n", cur_y, int(left->x_+0.5), int(right->x_+0.5));
 				}
 
@@ -700,8 +717,8 @@ void ScaneLine(int cur_y)
 	}
 	else {
 		// draw background for the whole line
-		DrawInCVWindow(cur_y, 0, WIN_WIDTH - 1, glm::vec3(0,0,0));
-		printf("[y=%d] draw the whole line with bg color\n", cur_y);
+		//DrawInCVWindow(cur_y, 0, WIN_WIDTH - 1, glm::vec3(0,0,0));
+		//printf("[y=%d] draw the whole line with bg color\n", cur_y);
 	}
 
 	// destroy last scaneline info in APT&AET
@@ -733,10 +750,10 @@ void myDisplay() {
 
 int main(int argc, char* argv[]) {
 	//InitSceneData();
-	Mesh mesh("./cube.obj");
-	model = glm::rotate(model, 10.0f, glm::vec3(0, 1, 0));
-	model = glm::rotate(model, 5.0f, glm::vec3(1, 0, 0));
-	model = glm::rotate(model, 5.0f, glm::vec3(0, 0, 1));
+	Mesh mesh("./bunny2.obj");
+	model = glm::rotate(model, 0.0f, glm::vec3(0, 1, 0));
+	model = glm::rotate(model, 0.0f, glm::vec3(1, 0, 0));
+	model = glm::rotate(model, 0.0f, glm::vec3(0, 0, 1));
 
 	mesh.transform(model);
 	InitSceneData(mesh);
@@ -762,16 +779,16 @@ int main(int argc, char* argv[]) {
 
 void DrawInCVWindow(int y, int x_begin, int x_end, glm::vec3 color)
 {
-	for (int i = x_begin; i <= x_end+1; i++)
+	for (int i = x_begin; i <= x_end; i++)
 	{
 		if (i >= WIN_WIDTH)
 			break;
 		if (i < 0)
 			continue;
-		// //边用白色
+		// 边用蓝色色
 		//if (i == x_begin || i == x_end)
 		//{
-		//	canvas.at<cv::Vec3b>(y, i) = cv::Vec3b(255, 255, 255);
+		//	canvas.at<cv::Vec3b>(y, i) = cv::Vec3b(255, 255, 0);
 		//}
 		//else
 			canvas.at<cv::Vec3b>(y, i) = cv::Vec3b(color.x, color.y, color.z);
@@ -779,7 +796,7 @@ void DrawInCVWindow(int y, int x_begin, int x_end, glm::vec3 color)
 
 	cv::imshow("canvas", canvas);
 	char fn[100];
-	sprintf(fn, "./mid_imgs/%d.jpg", y);
+	sprintf(fn, "./mid_imgs2/%d.jpg", y);
 	cv::imwrite(fn, canvas);
 }
 
@@ -787,7 +804,11 @@ void DrawInCVWindow(int y, int x_begin, int x_end, Polygon* polygon)
 {
 	glm::vec3 light_dir = glm::normalize(light_pos);
 	float diffuse = glm::dot(polygon->normal_, light_dir);
-	diffuse = (diffuse > 0) ? diffuse : 0;
+	diffuse = (diffuse + 1) / 2.0;
+
+	//diffuse = (diffuse > 0) ? diffuse : 0.01;
+	if (diffuse < 0)
+		printf("diffuse < 0");
 
 	glm::vec3 diffuse_color = 255.0f * diffuse * light_color;
 

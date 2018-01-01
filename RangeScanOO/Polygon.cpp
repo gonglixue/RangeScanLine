@@ -6,6 +6,7 @@ Polygon::Polygon(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color)
 {
 	static int static_id = 0;
 	id_ = static_id++;
+	alread_drawn = false;
 	
 	// 用原始逆时针定义的三角形坐标求解平面方程
 	glm::vec3 normal = glm::cross(p2 - p1, p3 - p1);

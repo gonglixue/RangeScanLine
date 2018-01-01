@@ -25,6 +25,8 @@ public:
 	Edge* e2_;
 	Edge* e3_;
 
+	bool alread_drawn;
+
 	Polygon(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color = glm::vec3(255, 0, 0));
 	void AddEdge(Edge* e1, Edge* e2, Edge* e3);
 	void IntersectWithScanLine(int scan_y, bool& flag1, bool& flag2, bool& flag3);

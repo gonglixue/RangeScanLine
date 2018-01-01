@@ -75,7 +75,7 @@ Mesh::Mesh(std::string filename)
 void Mesh::normalize(float avg_x, float avg_y, float avg_z)
 {
 	float length = std::fmaxf(max_x_ - min_x_, max_y_ - min_x_);
-	float scale = 200.0 / length;
+	float scale = 350.0 / length;
 	// scale µ½ 50~650
 	float transx = 200 - avg_x * scale;
 	float transy = 200 - avg_y * scale;
