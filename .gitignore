@@ -1,0 +1,14 @@
+.vs/
+Debug/
+x64/
+Test/
+*.db
+*.opendb
+*.txt
+*.cmake
+Makefile
+cmake-build-debug/
+CMakeFiles/
+.idea/
+mid_imgs/
+mid_imgs2/
