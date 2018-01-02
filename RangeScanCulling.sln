@@ -3,11 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RangeScanCulling", "RangeScanCulling\RangeScanCulling.vcxproj", "{C9DA9145-07A3-47F1-A731-F3DC0BC4E5DB}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcxproj", "{5710CE99-CE74-483D-9EAF-0388A6711325}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RangeScanOO", "RangeScanOO\RangeScanOO.vcxproj", "{1F405337-446F-4AB5-89F0-26A1F37DD03F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scan", "RangeScanOO\RangeScanOO.vcxproj", "{1F405337-446F-4AB5-89F0-26A1F37DD03F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,22 +13,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C9DA9145-07A3-47F1-A731-F3DC0BC4E5DB}.Debug|x64.ActiveCfg = Debug|x64
-		{C9DA9145-07A3-47F1-A731-F3DC0BC4E5DB}.Debug|x64.Build.0 = Debug|x64
-		{C9DA9145-07A3-47F1-A731-F3DC0BC4E5DB}.Debug|x86.ActiveCfg = Debug|Win32
-		{C9DA9145-07A3-47F1-A731-F3DC0BC4E5DB}.Debug|x86.Build.0 = Debug|Win32
-		{C9DA9145-07A3-47F1-A731-F3DC0BC4E5DB}.Release|x64.ActiveCfg = Release|x64
-		{C9DA9145-07A3-47F1-A731-F3DC0BC4E5DB}.Release|x64.Build.0 = Release|x64
-		{C9DA9145-07A3-47F1-A731-F3DC0BC4E5DB}.Release|x86.ActiveCfg = Release|Win32
-		{C9DA9145-07A3-47F1-A731-F3DC0BC4E5DB}.Release|x86.Build.0 = Release|Win32
-		{5710CE99-CE74-483D-9EAF-0388A6711325}.Debug|x64.ActiveCfg = Debug|x64
-		{5710CE99-CE74-483D-9EAF-0388A6711325}.Debug|x64.Build.0 = Debug|x64
-		{5710CE99-CE74-483D-9EAF-0388A6711325}.Debug|x86.ActiveCfg = Debug|Win32
-		{5710CE99-CE74-483D-9EAF-0388A6711325}.Debug|x86.Build.0 = Debug|Win32
-		{5710CE99-CE74-483D-9EAF-0388A6711325}.Release|x64.ActiveCfg = Release|x64
-		{5710CE99-CE74-483D-9EAF-0388A6711325}.Release|x64.Build.0 = Release|x64
-		{5710CE99-CE74-483D-9EAF-0388A6711325}.Release|x86.ActiveCfg = Release|Win32
-		{5710CE99-CE74-483D-9EAF-0388A6711325}.Release|x86.Build.0 = Release|Win32
 		{1F405337-446F-4AB5-89F0-26A1F37DD03F}.Debug|x64.ActiveCfg = Debug|x64
 		{1F405337-446F-4AB5-89F0-26A1F37DD03F}.Debug|x64.Build.0 = Debug|x64
 		{1F405337-446F-4AB5-89F0-26A1F37DD03F}.Debug|x86.ActiveCfg = Debug|Win32

@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Polygon.h"
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 class Polygon;
 class Edge
 {

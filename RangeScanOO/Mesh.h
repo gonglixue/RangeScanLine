@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
-#include <glm\glm.hpp>
+#include "glm/glm.hpp"
 #include <string>
 #include <fstream>
 

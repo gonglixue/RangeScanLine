@@ -4,7 +4,8 @@
 #include <algorithm>
 #include <time.h>
 #include <opencv2\opencv.hpp>
-#include <glm\gtc\matrix_transform.hpp>
+#include "glm/gtc/matrix_transform.hpp"
+
 
 // 扫描线由上到下扫，及y由小到大；
 
@@ -579,9 +580,6 @@ void ScaneLine(int cur_y)
 			{
 
 				// TODO
-				// 傻逼了，我为什么要把活化边对写在一起:)
-
-
 
 			}
 			// 该多边形不在活化多边形表里，是新的多边形
@@ -747,15 +745,15 @@ int main(int argc, char* argv[]) {
 	//InitSceneData();
 	std::string filename;
 	if (argc != 2)
-		filename = "./cube.obj";
+		filename = "./bunny.obj";
 	else
 		filename = argv[1];
 
 	clock_t start = clock();
 	Mesh mesh(filename);
-	model = glm::rotate(model, 0.0f, glm::vec3(0, 1, 0));
+	model = glm::rotate(model, 0.5f, glm::vec3(0, 1, 0));
 	model = glm::rotate(model, 3.1410f, glm::vec3(1, 0, 0));
-	model = glm::rotate(model, 0.0f, glm::vec3(0, 0, 1));
+	model = glm::rotate(model, 0.5f, glm::vec3(0, 0, 1));
 	mesh.transform(model);
 	InitSceneData(mesh);
 	clock_t finish = clock();
